@@ -1,0 +1,39 @@
+import { assert } from 'chai'
+import LoginPage from '../pageobjects/login.page.js'
+import {JsonReader} from "../../utils/JsonReader.js";
+import {filePathResolver} from "../../utils/FilePathResolver.js";
+
+describe('Login', () => {
+
+    before(async () => {
+        await LoginPage.open();
+    })
+    it('Login with invalid password', async () => {
+        const filePath = filePathResolver.getFilePath('testData.json');
+        const testData = JsonReader.readJson(filePath);
+
+        console.log("step1 Enter valid login into \"Login\" field")
+        await LoginPage.inputUsername.setValue(testData.users.standard_user);
+        const actualDataStep1 = await LoginPage.inputUsername.getValue();
+        await assert.equal(actualDataStep1, testData.users.standard_user, "Data is entered to the field");
+
+        console.log("step2 Enter invalid password into \"Password\" field\n")
+        await LoginPage.inputPassword.setValue('invalidPassword');
+        const actualDataStep2 = await LoginPage.inputPassword.getValue();
+        await assert.isNotEmpty(actualDataStep2, "Data is entered to the field");
+        const type = await LoginPage.inputPassword.getAttribute('type');
+        await assert.equal(type, 'password', "data is reprresented as dots instead of characters");
+
+        console.log("step3 Click \"Login\" button\n")
+        await LoginPage.btnSubmit.click();
+        await assert.isTrue(await LoginPage.usernameErrorIcon, "\"X\" icons are displayed on the \"Login\" fields");
+        await assert.isTrue(await LoginPage.passwordErrorIcon, "\"X\" icons are displayed on the \"Password\" fields");
+        const userHighlightedWithRed = await LoginPage.inputUsername.getAttribute('class');
+        await assert.include(userHighlightedWithRed, 'error', "this fields are highlighted with red");
+        const passwordHighlightedWithRed = await LoginPage.inputPassword.getAttribute('class');
+        await assert.include(passwordHighlightedWithRed, 'error', "this fields are highlighted with red");
+        const errorMessage = await LoginPage.redMessage.getText();
+        await assert.equal(errorMessage, testData.expectedError, "Epic sadface: Username and password do not match any user in this service\"\" error message are displayed");
+    })
+})
+

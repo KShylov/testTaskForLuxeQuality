@@ -1,0 +1,89 @@
+import {assert} from 'chai'
+import LoginPage from '../pageobjects/login.page.js'
+import InventoryPage from "../pageobjects/inventory.page.js";
+import {JsonReader} from "../../utils/JsonReader.js";
+import {filePathResolver} from "../../utils/FilePathResolver.js";
+import cartPage from "../pageobjects/cart.page.js";
+import checkoutPage from "../pageobjects/checkout.page.js";
+
+describe('Checkout', () => {
+    const filePath = filePathResolver.getFilePath('testData.json');
+    const testData = JsonReader.readJson(filePath);
+
+    before(async () => {
+        await LoginPage.open();
+        await LoginPage.login(testData.users.standard_user, testData.password);
+    })
+
+    it("Valid Checkout", async () => {
+        let productNameToStep2 = await InventoryPage.productName.getText();
+
+        console.log("step1 Click on the \"Add to cart\" button near any product");
+        await InventoryPage.addToCartButton.click();
+        const nearCartEl = await InventoryPage.nearTheCartElement.getText();
+        await assert.equal(nearCartEl, 1, "Number near the cart at the top right increase by 1, product is added to cart");
+
+        console.log("step2 Click on the \"Cart\" button at the top right corner");
+        await InventoryPage.shoppingCartContainer.click();
+        const actualDataStep2 = {
+            url: await browser.getUrl(),
+            productName: await cartPage.productName.getText()
+        }
+        const expectedDataStep2 = {
+            url: 'https://www.saucedemo.com/cart.html',
+            productName: productNameToStep2
+        }
+        await assert.deepEqual(actualDataStep2, expectedDataStep2, "Cart page is displayed, product are the same as was added at step 1");
+
+        let discription = (await cartPage.discription.getText()).replace('Remove', '');
+
+        console.log("step3 Click on the \"Checkout\" button");
+        await cartPage.checkoutButton.click();
+        await assert.isTrue(await checkoutPage.checkoutForm.isDisplayed(), "Checkout form are displayed")
+
+        console.log("step4 Fill the \"First Name\" field with valid data");
+        await checkoutPage.checkoutForm.$('#first-name').setValue(testData.firstName);
+        const firstName = await checkoutPage.checkoutForm.$('#first-name').getValue();
+        await assert.equal(firstName, testData.firstName, "Data is entered to the field");
+
+        console.log("step5 Fill the \"Second Name\" field with valid data");
+        await checkoutPage.checkoutForm.$('#last-name').setValue(testData.lastName);
+        const lastName = await checkoutPage.checkoutForm.$('#last-name').getValue();
+        await assert.equal(lastName, testData.lastName, "Data is entered to the field");
+
+        console.log("step6 Fill the \"Postal Code\" field with valid data");
+        await checkoutPage.checkoutForm.$('#postal-code').setValue(testData.zipCode);
+        const zipCode = await checkoutPage.checkoutForm.$('#postal-code').getValue();
+        await assert.equal(zipCode, testData.zipCode, "Data is entered to the field");
+
+        console.log("step7 Click on the \"Continue\" button");
+        await checkoutPage.continueButton.click();
+        let actualDiscription = await checkoutPage.discription.getText();
+        debugger;
+        await assert.equal(actualDiscription.trim(), discription.trim(), "User is redirected to the \"Overview\" page, Products from step 1 is displayed. Total price = price of products from step 1");
+
+        console.log("step8 Click on the \"Finish\" button");
+        await checkoutPage.finishButton.click();
+        const actualText = await checkoutPage.checkout_complete_container.getText();
+        await assert.include(actualText, "Thank you for your order!", "User is redirected to the \"Checkout Complete\" page, \"Thank you for your order!\" message are displayed");
+
+        console.log("step9 Click on the \"Back Home\" button");
+        await checkoutPage.checkout_complete_container.$('#back-to-products').click();
+        const actualDataStep9 = {
+            url: await browser.getUrl(),
+            isProduct: await InventoryPage.cards.every(async (card) => {
+                return await card.isDisplayed();
+            }),
+            cart: await InventoryPage.nearTheCartElement.isDisplayed()
+        }
+        const expectedData = {
+            url: 'https://www.saucedemo.com/inventory.html',
+            isProduct: true,
+            cart: false
+        }
+        await assert.deepEqual(actualDataStep9, expectedData, "User is redirected to the inventory page. Products are displayed. Cart is emptye");
+    })
+
+
+})
+

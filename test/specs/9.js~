@@ -1,0 +1,33 @@
+import {assert} from 'chai'
+import LoginPage from '../pageobjects/login.page.js'
+import InventoryPage from "../pageobjects/inventory.page.js";
+import {JsonReader} from "../../utils/JsonReader.js";
+import {filePathResolver} from "../../utils/FilePathResolver.js";
+import cartPage from "../pageobjects/cart.page.js";
+
+describe('Checkout', () => {
+    const filePath = filePathResolver.getFilePath('testData.json');
+    const testData = JsonReader.readJson(filePath);
+
+    before(async () => {
+        await LoginPage.open();
+        await LoginPage.login(testData.users.standard_user, testData.password);
+    })
+
+    it("Checkout without products", async () => {
+        console.log("step1 Click on the \"Cart\" button at the top right corner");
+        await InventoryPage.shoppingCartContainer.click();
+        const cartUrl = await browser.getUrl();
+        await assert.equal(cartUrl, 'https://www.saucedemo.com/cart.html', "Cart page is displayed");
+        await assert.isFalse(await cartPage.cartItem.isDisplayed(), "products are not displayed")
+
+        console.log("step2 Click on the \"Checkout\" button");
+        await cartPage.checkoutButton.click();
+        debugger;
+        let actualText = await $('#root').getText();
+        await assert.include(actualText, "Cart is empty", "User are located on the \"Cart\" Page, error message \"Cart is empty\" are displayed");
+    })
+
+
+})
+

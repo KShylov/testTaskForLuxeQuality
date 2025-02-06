@@ -1,0 +1,30 @@
+import { expect } from '@wdio/globals'
+import LoginPage from '../pageobjects/login.page.js'
+import InventoryPage from '../pageobjects/inventory.page.js'
+import JsonReader from "../../utils/JsonReader.js";
+
+describe('My Login application', () => {
+    const testData = new JsonReader('testData.json').readJson();
+    beforeEach(async () => {
+        await LoginPage.open();
+    })
+    it('Valid Login', async () => {
+        console.log("step1 Enter valid login into \"Login\" field")
+        await LoginPage.inputUsername.setValue(testData.users.standard_user);
+        const actualDataStep1 = await LoginPage.inputUsername.getValue();
+        expect(actualDataStep1).toBe(testData.users.standard_user, "The input data does not match the received data.");
+
+        console.log("step2 Enter valid password into \"Password\" field")
+        await LoginPage.inputPassword.setValue(testData.password);
+        const actualDataStep2 = await LoginPage.inputPassword.getValue();
+        expect(actualDataStep2).toBe(testData.password, "The input data does not match the received data.");
+
+        console.log("step3 Click \"Login\" button\n")
+        await LoginPage.btnSubmit.click();
+        const  cards = InventoryPage.cards
+        const cart = InventoryPage.shoppingCartContainer
+        expect(cards).toBeDisplayed("The cards are not displayed");
+        expect(cart).toBeDisplayed("The cart are not displayed");
+    })
+})
+

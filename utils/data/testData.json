@@ -1,0 +1,15 @@
+{
+  "users": {
+    "standard_user": "standard_user",
+    "locked_out_user": "locked_out_user",
+    "problem_user": "problem_user",
+    "performance_glitch_user": "performance_glitch_user",
+    "error_user": "error_user",
+    "visual_user": "visual_user"
+  },
+  "password": "secret_sauce",
+  "firstName": "Putin",
+  "lastName": "Hyilo",
+  "zipCode": "12345",
+  "expectedError": "Epic sadface: Username and password do not match any user in this service"
+}
