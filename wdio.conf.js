@@ -1,7 +1,9 @@
 import path from 'node:path'; // ✅ Импорт модуля path
 import url from 'node:url';
+import fs from 'fs';
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+const getRandomPort = () => Math.floor(Math.random() * 10000) + 9000; // Генерация случайного порта
 
 export const config = {
 
@@ -49,23 +51,22 @@ export const config = {
     // and 30 processes will get spawned. The property handles how many capabilities
     // from the same test should run tests.
     //
-    maxInstances: 10,
+    maxInstances: 5,
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
     // https://saucelabs.com/platform/platform-configurator
     //
     capabilities: [{
-        // capabilities for local browser web tests
-        browserName: 'chrome', // or "firefox", "microsoftedge", "safari"
+        browserName: 'chrome',
         'goog:chromeOptions': {
             args: [
                 '--no-sandbox',
                 '--disable-dev-shm-usage',
                 '--headless',
                 '--disable-gpu',
-                '--remote-debugging-port=9222',
-                `--user-data-dir=${path.join(__dirname, 'tmp', 'chrome-user-data')}`
+                `--remote-debugging-port=${getRandomPort()}`,
+                `--user-data-dir=${path.join(__dirname, 'tmp', 'chrome-user-data', Date.now().toString())}` // Уникальная директория
             ]
         }
     }],
@@ -157,6 +158,13 @@ export const config = {
     // it and to build services around it. You can either apply a single function or an array of
     // methods to it. If one of them returns with a promise, WebdriverIO will wait until that promise got
     // resolved to continue.
+    afterSession: async () => {
+        // Очистка временных данных после завершения сессии тестов
+        const userDataDir = path.join(__dirname, 'tmp', 'chrome-user-data');
+        if (fs.existsSync(userDataDir)) {
+            fs.rmSync(userDataDir, { recursive: true, force: true });
+        }
+    },
     /**
      * Gets executed once before all workers get launched.
      * @param {object} config wdio configuration object
