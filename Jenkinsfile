@@ -24,7 +24,7 @@ pipeline {
              steps {
                  script {
                      try {
-                         sh 'npm run wdio'
+                         sh 'npx wdio run ./wdio.conf.js'
                      } catch (e) {
                          currentBuild.result = 'FAILURE'
                          throw e // Переходим к следующей стадии, если ошибка произошла
