@@ -1,4 +1,10 @@
+import path from 'node:path'; // ✅ Импорт модуля path
+import url from 'node:url';
+
+const __dirname = path.dirname(url.fileURLToPath(import.meta.url));
+
 export const config = {
+
     //
     // ====================
     // Runner Configuration
@@ -51,7 +57,17 @@ export const config = {
     //
     capabilities: [{
         // capabilities for local browser web tests
-        browserName: 'chrome' // or "firefox", "microsoftedge", "safari"
+        browserName: 'chrome', // or "firefox", "microsoftedge", "safari"
+        'goog:chromeOptions': {
+            args: [
+                '--no-sandbox',
+                '--disable-dev-shm-usage',
+                '--headless',
+                '--disable-gpu',
+                '--remote-debugging-port=9222',
+                `--user-data-dir=${path.join(__dirname, 'tmp', 'chrome-user-data')}`
+            ]
+        }
     }],
 
     //
