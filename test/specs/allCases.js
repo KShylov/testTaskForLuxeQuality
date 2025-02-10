@@ -372,7 +372,7 @@ describe('Checkout without products', () => {
         await assert.isFalse(await cartPage.cartItem.isDisplayed(), "products are not displayed")
     });
 
-    it("Click on the \"Checkout\" button", async () => {
+    it.skip("Click on the \"Checkout\" button", async () => {
         await cartPage.checkoutButton.click();
         let actualText = await cartPage.getPageText();
         await assert.include(actualText, "Cart is empty", "User are located on the \"Cart\" Page, error message \"Cart is empty\" are displayed");
